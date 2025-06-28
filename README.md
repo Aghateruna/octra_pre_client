@@ -20,9 +20,10 @@ a terminal wallet reminiscent of dos-era tui interfaces — but built with moder
 - internet connection  
 - your wallet file (private key)
 
-## how to install (step by step)
+## how to install and run (step by step)
 
 1. open terminal  
+
 2. run these commands one by one:
 
 ```bash
@@ -32,3 +33,21 @@ python3 -m venv venv
 source venv/bin/activate # for windows use: venv\Scripts\activate
 pip install -r requirements.txt
 cp wallet.json.example wallet.json
+```
+
+3. open wallet.json and edit it (change placeholders to your wallet data):
+
+```json
+{
+  "priv": "private-key-here",
+  "addr": "octxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "rpc": "https://octra.network"
+}
+```
+
+3. run
+
+```bash
+./run.sh       # on linux/mac
+run.bat        # on windows
+```
