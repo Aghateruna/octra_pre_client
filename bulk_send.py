@@ -25,13 +25,14 @@ def send_tx(to, amount):
         "tx": tx,
         "sig": sig
     }
-    r = requests.post(f"{rpc}/send", json=payload)
+    r = requests.post(f"{rpc}/send-tx", json=payload)  # HARUS /send-tx, bukan /tx atau /send
     return r.json()
 
 with open("recipients.txt") as f:
-    for line in f:
-        line = line.strip()
-        if not line: continue
-        addr, amt = line.split()
+    lines = f.readlines()
+
+for line in lines:
+    if line.strip():
+        addr, amt = line.strip().split()
         result = send_tx(addr, amt)
         print(f"✔️ Sent {amt} to {addr} → {result}")
