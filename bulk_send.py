@@ -25,7 +25,7 @@ def send_tx(to, amount):
         "tx": tx,
         "sig": sig
     }
-    r = requests.post(f"{rpc}/tx", json=payload)
+    r = requests.post(f"{rpc}/send", json=payload)
     return r.json()
 
 with open("recipients.txt") as f:
