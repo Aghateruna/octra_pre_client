@@ -65,7 +65,7 @@ async def awaitkey():
 def ld():
     global priv, addr, rpc, sk, pub
     try:
-        with open('wallet.json', 'r') as f:
+        with open('.secrets/wallet.json', 'r') as f:
             d = json.load(f)
         priv = d.get('priv')
         addr = d.get('addr')
