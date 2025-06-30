@@ -9,7 +9,7 @@ import hashlib
 μ = 1_000_000
 
 # Load wallet
-with open("wallet.json") as f:
+with open(".secrets/wallet.json") as f:
     wallet = json.load(f)
 
 rpc = wallet["rpc"].rstrip("/")
