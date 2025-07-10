@@ -9,7 +9,12 @@ def load_wallet():
 def load_recipients():
     with open("recipients.txt", "r") as f:
         lines = f.readlines()
-        return [line.strip().split() for line in lines if line.strip()]
+        result = []
+        for line in lines:
+            parts = line.strip().split()
+            if len(parts) == 2:
+                result.append((parts[0], parts[1]))
+        return result
 
 def build_tx(wallet, to_addr, amount):
     return {
@@ -18,13 +23,16 @@ def build_tx(wallet, to_addr, amount):
         "amount": float(amount)
     }
 
-def send_all():
+async def main():
     wallet = load_wallet()
     recipients = load_recipients()
     for to_addr, amount in recipients:
         tx = build_tx(wallet, to_addr, amount)
-        result = asyncio.run(snd(tx))
-        print("Hasil:", result)
+        try:
+            result = await snd(tx)
+            print("Hasil:", result)
+        except Exception as e:
+            print("Gagal:", e)
 
 if __name__ == "__main__":
-    send_all()
+    asyncio.run(main())
