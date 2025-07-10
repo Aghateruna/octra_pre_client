@@ -1,17 +1,27 @@
 import asyncio
-import json
-from cli import snd  # hanya fungsi ini yang tersedia
+from cli import ld, mk, snd, st
 
 async def send_bulk():
-    with open("recipients.txt", "r") as f:
-        recipients = [line.strip().split() for line in f if line.strip()]
+    if not ld():
+        print("❌ Failed to load wallet.")
+        return
+
+    nonce, balance = await st()
     
-    for address, amount in recipients:
-        tx = {
-            "to": address,
-            "amount": float(amount)
-        }
-        result = await snd(tx)
-        print("Hasil:", result)
+    with open("recipients.txt", "r") as f:
+        recipients = []
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) == 2:
+                recipients.append((parts[0], float(parts[1])))
+
+    for to_addr, amount in recipients:
+        tx, _ = mk(to_addr, amount, nonce)
+        success, txhash, delay, _ = await snd(tx)
+        if success:
+            print(f"✅ Sent {amount} OCT to {to_addr} in {delay:.2f}s - TX: {txhash}")
+            nonce += 1
+        else:
+            print(f"❌ Failed to send {amount} OCT to {to_addr}: {txhash}")
 
 asyncio.run(send_bulk())
