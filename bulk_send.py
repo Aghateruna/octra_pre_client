@@ -1,29 +1,17 @@
 import asyncio
 import json
+from cli import snd  # hanya fungsi ini yang tersedia
 
-from cli import snd, sign, addr, priv  # Pastikan cli.py punya semua ini
-
-with open("recipients.txt", "r") as f:
-    lines = f.readlines()
-
-recipients = []
-for line in lines:
-    parts = line.strip().split()
-    if len(parts) == 2:
-        recipients.append((parts[0], float(parts[1])))
-
-async def send_all():
-    for to_addr, amount in recipients:
+async def send_bulk():
+    with open("recipients.txt", "r") as f:
+        recipients = [line.strip().split() for line in f if line.strip()]
+    
+    for address, amount in recipients:
         tx = {
-            "from": addr,
-            "to": to_addr,
-            "amount": amount,
-            "token": "OCT",
-            "timestamp": int(time.time())
+            "to": address,
+            "amount": float(amount)
         }
-        tx["sig"] = sign(tx, priv)
         result = await snd(tx)
         print("Hasil:", result)
-        await asyncio.sleep(1)
 
-asyncio.run(send_all())
+asyncio.run(send_bulk())
