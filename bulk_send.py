@@ -1,37 +1,24 @@
-import json
-import os
-import time
+bulk_send.py
 
-# Load wallet
-with open("wallet.json", "r") as f:
-    wallet = json.load(f)
+import json, asyncio from cli import send_transaction
 
-    priv = wallet["priv"]
-    addr = wallet["addr"]
-    rpc = wallet["rpc"]
+Path ke wallet dan daftar penerima
 
-    # Load recipients
-    recipients = []
+wallet_path = "wallet.json" recipients_path = "recipients.txt"
 
-    with open("recipients.txt", "r", encoding="utf-8") as f:
-        for line in f:
-                parts = line.strip().split()
-                        if len(parts) == 2:
-                                    address = parts[0].strip()
-                                                try:
-                                                                amount = float(parts[1])
-                                                                                recipients.append((address, amount))
-                                                                                            except ValueError:
-                                                                                                            print(f"❌ Invalid amount on line: {line.strip()}")
+Load wallet
 
-                                                            # Fungsi untuk kirim transaksi (dummy)
-                                                            def send_transaction(to_addr, amount):
-                                                                print(f"Mengirim {amount} OCT ke {to_addr} dari {addr}")
-                                                                    # Tambahkan fungsi transaksi asli di sini
-                                                                        time.sleep(0.5)  # delay simulasi
+with open(wallet_path, "r") as f: wallet = json.load(f)
 
-                                                                        # Kirim semua transaksi
-                                                                        for to_addr, amount in recipients:
-                                                                            send_transaction(to_addr, amount)
+Load recipients
 
-                                                                            print("✅ Selesai mengirim semua.")
+with open(recipients_path, "r") as f: lines = f.readlines() recipients = [] for line in lines: parts = line.strip().split() if len(parts) == 2: recipients.append((parts[0], float(parts[1])))
+
+Fungsi kirim satu transaksi
+
+async def send_all(): for address, amount in recipients: print(f"Sending {amount} OCT to {address}...") await send_transaction(wallet, address, amount) await asyncio.sleep(3)  # delay agar tidak overload
+
+Jalankan
+
+asyncio.run(send_all())
+
