@@ -1,34 +1,30 @@
-import json
-import os
-from cli import send_transaction  # Pastikan fungsi ini sesuai dengan implementasi di cli.py
+import asyncio
+from cli import snd
 
-WALLET_PATH = "wallet.json"
-RECIPIENTS_FILE = "recipients.txt"
+def load_wallet():
+    import json
+    with open("wallet.json", "r") as f:
+        return json.load(f)
 
-# Load wallet
-with open(WALLET_PATH, "r") as f:
-    wallet = json.load(f)
+def load_recipients():
+    with open("recipients.txt", "r") as f:
+        lines = f.readlines()
+        return [line.strip().split() for line in lines if line.strip()]
 
-priv = wallet.get("priv")
-addr = wallet.get("addr")
-rpc = wallet.get("rpc")
+def build_tx(wallet, to_addr, amount):
+    return {
+        "priv": wallet["priv"],
+        "to": to_addr,
+        "amount": float(amount)
+    }
 
-# Load recipients
-recipients = []
-with open(RECIPIENTS_FILE, "r") as f:
-    for line in f:
-        line = line.strip()
-        if line:
-            parts = line.split()
-            if len(parts) == 2:
-                recipient_addr, amount = parts
-                recipients.append((recipient_addr, float(amount)))
+def send_all():
+    wallet = load_wallet()
+    recipients = load_recipients()
+    for to_addr, amount in recipients:
+        tx = build_tx(wallet, to_addr, amount)
+        result = asyncio.run(snd(tx))
+        print("Hasil:", result)
 
-# Send to each recipient
-for recipient_addr, amount in recipients:
-    print(f"Sending {amount} OCT to {recipient_addr}...")
-    try:
-        tx = send_transaction(priv, addr, rpc, recipient_addr, amount)
-        print("Success:", tx)
-    except Exception as e:
-        print("Error sending to", recipient_addr, ":", str(e))
+if __name__ == "__main__":
+    send_all()
