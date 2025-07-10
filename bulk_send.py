@@ -3,25 +3,30 @@ from cli import ld, mk, snd, st
 
 async def send_bulk():
     if not ld():
-        print("❌ Failed to load wallet.")
+        print("Gagal load wallet.")
         return
 
-    nonce, balance = await st()
-    
-    with open("recipients.txt", "r") as f:
-        recipients = []
-        for line in f:
-            parts = line.strip().split()
-            if len(parts) == 2:
-                recipients.append((parts[0], float(parts[1])))
+    try:
+        with open("recipients.txt", "r") as f:
+            recipients = [
+                line.strip().split(",") 
+                for line in f.readlines() 
+                if line.strip() and "," in line
+            ]
+    except Exception as e:
+        print(f"Gagal baca file: {e}")
+        return
+
+    nonce, _ = await st()
+    if nonce is None:
+        print("Gagal ambil nonce.")
+        return
 
     for to_addr, amount in recipients:
-        tx, _ = mk(to_addr, amount, nonce)
-        success, txhash, delay, _ = await snd(tx)
-        if success:
-            print(f"✅ Sent {amount} OCT to {to_addr} in {delay:.2f}s - TX: {txhash}")
+        try:
+            tx, _ = mk(to_addr.strip(), float(amount.strip()), nonce)
+            success, tx_hash, t, res = await snd(tx)
+            print(f"Hasil: ({success}, {tx_hash}, {t}, {res})")
             nonce += 1
-        else:
-            print(f"❌ Failed to send {amount} OCT to {to_addr}: {txhash}")
-
-asyncio.run(send_bulk())
+        except Exception as e:
+            print(f"Gagal kirim ke {
