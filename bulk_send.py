@@ -1,24 +1,34 @@
-bulk_send.py
+import json
+import os
+from cli import send_transaction  # Pastikan fungsi ini sesuai dengan implementasi di cli.py
 
-import json, asyncio from cli import send_transaction
+WALLET_PATH = "wallet.json"
+RECIPIENTS_FILE = "recipients.txt"
 
-Path ke wallet dan daftar penerima
+# Load wallet
+with open(WALLET_PATH, "r") as f:
+    wallet = json.load(f)
 
-wallet_path = "wallet.json" recipients_path = "recipients.txt"
+priv = wallet.get("priv")
+addr = wallet.get("addr")
+rpc = wallet.get("rpc")
 
-Load wallet
+# Load recipients
+recipients = []
+with open(RECIPIENTS_FILE, "r") as f:
+    for line in f:
+        line = line.strip()
+        if line:
+            parts = line.split()
+            if len(parts) == 2:
+                recipient_addr, amount = parts
+                recipients.append((recipient_addr, float(amount)))
 
-with open(wallet_path, "r") as f: wallet = json.load(f)
-
-Load recipients
-
-with open(recipients_path, "r") as f: lines = f.readlines() recipients = [] for line in lines: parts = line.strip().split() if len(parts) == 2: recipients.append((parts[0], float(parts[1])))
-
-Fungsi kirim satu transaksi
-
-async def send_all(): for address, amount in recipients: print(f"Sending {amount} OCT to {address}...") await send_transaction(wallet, address, amount) await asyncio.sleep(3)  # delay agar tidak overload
-
-Jalankan
-
-asyncio.run(send_all())
-
+# Send to each recipient
+for recipient_addr, amount in recipients:
+    print(f"Sending {amount} OCT to {recipient_addr}...")
+    try:
+        tx = send_transaction(priv, addr, rpc, recipient_addr, amount)
+        print("Success:", tx)
+    except Exception as e:
+        print("Error sending to", recipient_addr, ":", str(e))
