@@ -6,6 +6,7 @@ async def send_bulk():
         print("Gagal load wallet.")
         return
 
+<<<<<<< Updated upstream
     try:
         with open("recipients.txt", "r") as f:
             recipients = [
@@ -21,6 +22,16 @@ async def send_bulk():
     if nonce is None:
         print("Gagal ambil nonce.")
         return
+=======
+    nonce, _ = await st()
+    
+    with open("recipients.txt", "r") as f:
+        recipients = []
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) == 2:
+                recipients.append((parts[0], float(parts[1])))
+>>>>>>> Stashed changes
 
     for to_addr, amount in recipients:
         try:
