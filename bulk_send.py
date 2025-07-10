@@ -1,33 +1,37 @@
 import asyncio
-from cli import load, snd, sign, addr, priv
 import json
+import os
+from cli import snd, sign  # load tidak perlu
 
-async def main():
-    if not load():
-        print("Gagal memuat wallet.")
-        return
+# Baca wallet
+wallet_path = os.path.expanduser("~/.octra/wallet.json")
+if not os.path.exists(wallet_path):
+    wallet_path = "wallet.json"
 
-    recipients = []
-    with open("recipients.txt", "r") as f:
-        for line in f:
-            parts = line.strip().split()
-            if len(parts) == 2:
-                to_addr, amount = parts
-                try:
-                    amount = float(amount)
-                    recipients.append((to_addr, amount))
-                except ValueError:
-                    print(f"Jumlah tidak valid: {amount}")
+with open(wallet_path, "r") as f:
+    wallet = json.load(f)
 
+priv = wallet["priv"]
+addr = wallet["addr"]
+
+# Baca daftar penerima
+recipients = []
+with open("recipients.txt", "r") as f:
+    for line in f:
+        parts = line.strip().split()
+        if len(parts) == 2:
+            recipients.append((parts[0], float(parts[1])))
+
+# Kirim transaksi satu per satu
+async def send_all():
     for to_addr, amount in recipients:
         tx = {
-            "from_addr": addr,
-            "to_addr": to_addr,
+            "from": addr,
+            "to": to_addr,
             "amount": amount,
-            "data": "",
         }
-        tx["signature"] = sign(tx, priv)
+        sign(tx, priv)
         result = await snd(tx)
         print("Hasil:", result)
 
-asyncio.run(main())
+asyncio.run(send_all())
