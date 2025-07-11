@@ -1,5 +1,5 @@
-import asyncio, json, base64, re, time
-from cli import mk, snd, session, sk, pub, μ, addr, ld
+import asyncio, json, base64, re
+from cli import mk, snd, session, μ, addr, ld, st
 
 # Load wallet
 if not ld():
@@ -18,11 +18,8 @@ if not recipients:
     print("❌ recipients.txt kosong atau format salah.")
     exit(1)
 
-# Input nonce awal
-starting_nonce = int(input("📝 Masukkan nonce awal: "))
-
 async def send_bulk():
-    nonce = starting_nonce
+    nonce, _ = await st()
     print(f"\n🚀 Mulai kirim ke {len(recipients)} alamat, mulai dari nonce {nonce}\n")
 
     for i, (to_addr, amount_str) in enumerate(recipients):
@@ -38,9 +35,7 @@ async def send_bulk():
         except Exception as e:
             print(f"[{i+1}] ❌ Exception kirim ke {to_addr}: {e}")
 
-    # ✅ Tutup session aiohttp
     if session:
         await session.close()
 
-# Jalankan
 asyncio.run(send_bulk())
