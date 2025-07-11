@@ -24,5 +24,7 @@ async def send_bulk():
     try:
         with open("recipients.txt", "r") as f:
             recipients = [
-                line.strip().split()
-                for line in
+    line.strip().split()  # jika formatnya: octraAddress amount
+    for line in f.readlines()
+    if line.strip()
+            ]
