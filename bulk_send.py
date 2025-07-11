@@ -18,13 +18,13 @@ if not recipients:
     print("❌ recipients.txt kosong atau format salah.")
     exit(1)
 
-# Nonce awal
-nonce = int(input("📝 Masukkan nonce awal: "))
+# Input nonce awal
+starting_nonce = int(input("📝 Masukkan nonce awal: "))
 
 async def send_bulk():
+    nonce = starting_nonce
     print(f"\n🚀 Mulai kirim ke {len(recipients)} alamat, mulai dari nonce {nonce}\n")
 
-    global nonce
     for i, (to_addr, amount_str) in enumerate(recipients):
         try:
             amount = float(amount_str)
@@ -38,7 +38,7 @@ async def send_bulk():
         except Exception as e:
             print(f"[{i+1}] ❌ Exception kirim ke {to_addr}: {e}")
 
-    # ✅ Tutup session aiohttp di akhir
+    # ✅ Tutup session aiohttp
     if session:
         await session.close()
 
