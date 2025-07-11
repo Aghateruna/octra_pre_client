@@ -1,51 +1,43 @@
 import asyncio
-import json
-from cli import mk, snd, st
-
-def load_wallet():
-    try:
-        with open("wallet.json", "r") as f:
-            data = json.load(f)
-            priv = data["priv"]
-            addr = data["addr"]
-            return priv, addr
-    except Exception as e:
-        print(f"[X] Gagal load wallet.json: {e}")
-        return None, None
+from cli import ld, mk, snd, st
+import aiohttp
 
 async def send_bulk():
-    priv, addr = load_wallet()
-    if not priv or not addr:
+    if not ld():
+        print("❌ Gagal load wallet.")
         return
 
+    # Baca daftar penerima
     try:
         with open("recipients.txt", "r") as f:
             recipients = [
-                line.strip().split()  # Format: octraAddress amount
-                for line in f.readlines()
-                if line.strip()
+                line.strip().split()
+                for line in f if line.strip()
             ]
     except Exception as e:
-        print(f"[X] Gagal baca file recipients.txt: {e}")
+        print(f"❌ Gagal baca recipients.txt: {e}")
         return
 
-    try:
-        nonce, balance = await st()
-        if nonce is None:
-            print("[X] Gagal ambil nonce.")
-            return
-    except Exception as e:
-        print(f"[X] Gagal ambil nonce: {e}")
+    # Ambil nonce awal
+    nonce, _ = await st()
+    if nonce is None:
+        print("❌ Gagal ambil nonce (kemungkinan RPC down).")
         return
 
-    for to_addr, amount in recipients:
+    print(f"✅ Mulai kirim ke {len(recipients)} alamat, mulai dari nonce {nonce}")
+
+    for i, (to_addr, amount_str) in enumerate(recipients):
         try:
-            tx, _ = mk(to_addr.strip(), float(amount.strip()), nonce)
+            amount = float(amount_str)
+            tx, _ = mk(to_addr.strip(), amount, nonce)
             success, tx_hash, t, res = await snd(tx)
-            print(f"Hasil: {success}, tx_hash: {tx_hash}")
+            if success:
+                print(f"[{i+1}] ✅ Terkirim ke {to_addr} | {amount} OCT | tx_hash: {tx_hash}")
+            else:
+                print(f"[{i+1}] ❌ Gagal kirim ke {to_addr} | {res or 'unknown error'}")
             nonce += 1
         except Exception as e:
-            print(f"[X] Gagal kirim ke {to_addr.strip()}: {e}")
+            print(f"[{i+1}] ❌ Exception kirim ke {to_addr}: {e}")
 
-if __name__ == "__main__":
-    asyncio.run(send_bulk())
+# Jalankan
+asyncio.run(send_bulk())
